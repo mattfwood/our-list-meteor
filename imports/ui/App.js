@@ -1,12 +1,16 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
+import { Grid, Row, Col } from 'react-flexbox-grid';
 
 import { Tasks } from '../api/tasks';
+import { Lists } from '../api/lists';
 
 import Task from './Task';
+import ListPreview from './ListPreview';
 import AccountsUIWrapper from './AccountsUIWrapper.js';
+import LoginView from './LoginView';
 
 // App component - represents the whole app
 class App extends Component {
@@ -18,29 +22,21 @@ class App extends Component {
 
   state = {
     newTodo: '',
-    hideCompleted: false,
+    activeList: '',
   };
 
   renderTasks() {
-    let filteredTasks = this.props.tasks;
-    if (this.state.hideCompleted) {
-      filteredTasks = filteredTasks.filter(task => !task.checked);
-    }
+    const { tasks } = this.props;
 
-    return filteredTasks.map((task) => {
-      const currentUserId = this.props.currentUser && this.props.currentUser._id;
-      const showPrivateButton = task.owner === currentUserId;
+    const completeTasks = tasks.filter(task => task.checked);
+    const incompleteTasks = tasks.filter(task => !task.checked);
 
-      return (
-        <Task
-          key={task._id}
-          task={task}
-          showPrivateButton={showPrivateButton}
-        />
-      );
+    return [...incompleteTasks, ...completeTasks].map(task => {
+      return <Task key={task._id} task={task} />;
     });
   }
 
+  // HANDLERS
   handleChange = event => {
     this.setState({ newTodo: event.target.value });
   };
@@ -54,51 +50,79 @@ class App extends Component {
     this.setState({ newTodo: '' });
   };
 
-  toggleHideCompleted = () => {
-    this.setState({
-      hideCompleted: !this.state.hideCompleted,
-    });
+  // ACTIONS
+  createList = () => {
+    Meteor.call('lists.insert', 'New List');
   };
 
-  render() {
-    return (
-      <div className="container">
-        <header>
-          <h1>Todo List ({this.props.incompleteCount})</h1>
-          <label className="hide-completed">
-            <input
-              type="checkbox"
-              readOnly
-              checked={this.state.hideCompleted}
-              onClick={this.toggleHideCompleted}
-            />
-            Hide Completed Tasks
-          </label>
-          <AccountsUIWrapper />
-          {this.props.currentUser ? (
-            <form className="new-task" onSubmit={this.handleSubmit}>
-              <input
-                type="text"
-                ref="textInput"
-                placeholder="Type to add new tasks"
-                onChange={this.handleChange}
-                value={this.state.newTodo}
-              />
-            </form>
-          ) : null}
-        </header>
+  selectList = (listId) => {
+    this.setState({ activeList: listId })
+  }
 
-        <ul>{this.renderTasks()}</ul>
-      </div>
+  render() {
+    console.log(this.props);
+    return (
+      <Fragment>
+        <div className="app">
+          {/* MAIN VIEW  */}
+          {this.props.currentUser && (
+            <Fragment>
+              <header>
+                <h1>Group Name ({this.props.incompleteCount})</h1>
+                {/* <label className="hide-completed">
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={this.state.hideCompleted}
+                    onClick={this.toggleHideCompleted}
+                  />
+                  Hide Completed Tasks
+                </label> */}
+                <AccountsUIWrapper />
+              </header>
+              {/* <form className="new-task" onSubmit={this.handleSubmit}>
+                <input
+                  type="text"
+                  ref="textInput"
+                  placeholder="Type to add new tasks"
+                  onChange={this.handleChange}
+                  value={this.state.newTodo}
+                />
+              </form> */}
+              <Grid className="list-container">
+              {/* <ul>{this.renderTasks()}</ul> */}
+              <Row>
+                  {this.props.lists.map(list => (
+                    <ListPreview
+                      list={list}
+                      selectList={this.selectList}
+                      activeList={this.state.activeList}
+                    />
+                  ))}
+                  {/* <Col xs={6}>
+                  <button onClick={this.createList}>New List</button>
+                  </Col> */}
+                  <ListPreview createList={this.createList} />
+              </Row>
+              </Grid>
+            </Fragment>
+          )}
+          {/* UNAUTHENTICATED VIEW */}
+          <div />
+        </div>
+        {this.props.currentUser === null && <LoginView />}
+      </Fragment>
     );
   }
 }
 
 export default withTracker(() => {
   Meteor.subscribe('tasks');
+  Meteor.subscribe('lists');
   return {
     tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch(),
     incompleteCount: Tasks.find({ checked: { $ne: true } }).count(),
     currentUser: Meteor.user(),
+    lists: Lists.find({}, { sort: { createdAt: -1 } }).fetch(),
   };
 })(App);

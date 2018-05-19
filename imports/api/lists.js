@@ -2,24 +2,24 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { check } from 'meteor/check';
 
-export const Tasks = new Mongo.Collection('tasks');
+export const Lists = new Mongo.Collection('lists');
 
 if (Meteor.isServer) {
   // This code only runs on the server
-  Meteor.publish('tasks', function tasksPublication() {
-    return Tasks.find({ owner: this.userId });
+  Meteor.publish('lists', function listsPublication() {
+    return Lists.find({ owner: this.userId });
   });
 }
 
 Meteor.methods({
-  'tasks.insert'(text) {
+  'lists.insert'(text) {
     check(text, String);
 
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
 
-    Tasks.insert({
+    Lists.insert({
       text,
       createdAt: new Date(),
       owner: this.userId,
@@ -27,26 +27,26 @@ Meteor.methods({
     });
   },
 
-  'tasks.remove'(taskId) {
-    check(taskId, String);
+  'lists.remove'(listId) {
+    check(listId, String);
 
-    const task = Tasks.findOne(taskId);
-    if (task.owner !== this.userId) {
+    const list = Lists.findOne(listId);
+    if (list.owner !== this.userId) {
       throw new Meteor.Error('not-authorized');
     }
 
-    Tasks.remove(taskId);
+    Lists.remove(listId);
   },
 
-  'tasks.setChecked'(taskId, setChecked) {
-    check(taskId, String);
+  'lists.setChecked'(listId, setChecked) {
+    check(listId, String);
     check(setChecked, Boolean);
 
-    const task = Tasks.findOne(taskId);
-    if (task.owner !== this.userId) {
+    const list = Lists.findOne(listId);
+    if (list.owner !== this.userId) {
       throw new Meteor.Error('not-authorized');
     }
 
-    Tasks.update(taskId, { $set: { checked: setChecked } });
+    Lists.update(listId, { $set: { checked: setChecked } });
   },
 });
