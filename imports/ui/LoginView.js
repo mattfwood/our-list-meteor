@@ -29,7 +29,8 @@ class LoginView extends Component {
     Accounts.createUser({
       username,
       password,
-    }, () => {
+    }, (error) => {
+      console.log(error);
       console.log('success');
     });
 

@@ -11,6 +11,7 @@ import Task from './Task';
 import ListPreview from './ListPreview';
 import AccountsUIWrapper from './AccountsUIWrapper.js';
 import LoginView from './LoginView';
+import ActiveList from './ActiveList';
 
 // App component - represents the whole app
 class App extends Component {
@@ -22,7 +23,7 @@ class App extends Component {
 
   state = {
     newTodo: '',
-    activeList: '',
+    activeList: {},
   };
 
   renderTasks() {
@@ -55,9 +56,11 @@ class App extends Component {
     Meteor.call('lists.insert', 'New List');
   };
 
-  selectList = (listId) => {
-    this.setState({ activeList: listId })
-  }
+  selectList = (e, listId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    this.setState({ activeList: listId });
+  };
 
   render() {
     console.log(this.props);
@@ -90,8 +93,8 @@ class App extends Component {
                 />
               </form> */}
               <Grid className="list-container">
-              {/* <ul>{this.renderTasks()}</ul> */}
-              <Row>
+                {/* <ul>{this.renderTasks()}</ul> */}
+                <Row>
                   {this.props.lists.map(list => (
                     <ListPreview
                       list={list}
@@ -103,7 +106,8 @@ class App extends Component {
                   <button onClick={this.createList}>New List</button>
                   </Col> */}
                   <ListPreview createList={this.createList} />
-              </Row>
+                  <ActiveList selectList={this.selectList} list={this.state.activeList} />
+                </Row>
               </Grid>
             </Fragment>
           )}

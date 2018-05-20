@@ -145,3 +145,12 @@ header .hide-completed {
     padding-bottom: 5px;
   }
 }
+
+.close-icon {
+  width: 16px;
+  height: 16px;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
