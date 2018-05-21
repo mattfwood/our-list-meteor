@@ -24,6 +24,7 @@ Meteor.methods({
       createdAt: new Date(),
       owner: this.userId,
       username: Meteor.users.findOne(this.userId).username,
+      tasks: [],
     });
   },
 
@@ -48,5 +49,19 @@ Meteor.methods({
     }
 
     Lists.update(listId, { $set: { checked: setChecked } });
+  },
+
+  'lists.addTask'(listId, updatedTasks) {
+    check(listId, String);
+    check(updatedTasks, Array);
+
+    const list = Lists.findOne(listId);
+
+    // check if list is owned by person trying to edit
+    if (list.owner !== this.userId) {
+      throw new Meteor.Error('not-authorized');
+    }
+
+    Lists.update(listId, { $set: { tasks: updatedTasks } });
   },
 });

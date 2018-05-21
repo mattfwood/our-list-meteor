@@ -56,10 +56,10 @@ class App extends Component {
     Meteor.call('lists.insert', 'New List');
   };
 
-  selectList = (e, listId) => {
+  selectList = (e, list) => {
     e.preventDefault();
-    e.stopPropagation();
-    this.setState({ activeList: listId });
+    // e.stopPropagation();
+    this.setState({ activeList: list });
   };
 
   render() {
@@ -106,13 +106,16 @@ class App extends Component {
                   <button onClick={this.createList}>New List</button>
                   </Col> */}
                   <ListPreview createList={this.createList} />
-                  <ActiveList selectList={this.selectList} list={this.state.activeList} />
+                  <ActiveList
+                    selectList={this.selectList}
+                    list={this.state.activeList}
+                    currentUser={this.props.currentUser}
+                  />
                 </Row>
               </Grid>
             </Fragment>
           )}
           {/* UNAUTHENTICATED VIEW */}
-          <div />
         </div>
         {this.props.currentUser === null && <LoginView />}
       </Fragment>

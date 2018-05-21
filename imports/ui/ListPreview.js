@@ -4,8 +4,8 @@ import { Lists } from '../api/lists.js';
 import classnames from 'classnames';
 import { Col } from 'react-flexbox-grid';
 
-// Task component - represents a single todo item
-export default class Task extends Component {
+// ListPreview component - represents a single todo item
+export default class ListPreview extends Component {
   // toggleChecked() {
   //   // Set the checked property to the opposite of its current value
   //   Meteor.call(
